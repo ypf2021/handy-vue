@@ -85,7 +85,8 @@ export function compileToFunction(template) {
 
     // 2. 生成render方法（render方法执行后的返回结果就是 虚拟DOM）
 
-    let code = codeGen(ast) // 由ast树生成的 code 代码
+    let code = codeGen(ast) // 由ast树生成的 code 代码, 字符串代码
+    console.log(code)
     code = `with(this){return ${code}}`
 
     // render 得到的时一个 new 出来的 with函数，   new function可以传入字符串作为函数体

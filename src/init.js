@@ -37,6 +37,7 @@ export function initMixin(Vue) {
             if (template) {
                 // 最终是拿到template ， 然后去解析这个模板
                 const render = compileToFunction(template)
+                // 把render函数挂载到了 opts上面
                 opts.render = render
             }
 
