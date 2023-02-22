@@ -18,7 +18,7 @@ export function initMixin(Vue) {
     }
     Vue.prototype.$mount = function (el) {
         const vm = this
-        el = document.querySelector(el)
+        el = document.querySelector(el) // 对用户写入的 el 进行 querySelector处理
         let opts = vm.$options
 
         // 首先判断有无 render函数， 下来再有el的情况下，优先选择template 其次才是 innerhtml
