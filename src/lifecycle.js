@@ -1,5 +1,10 @@
 import { createTextVNode, createElementVNode } from "./vdom/index"
 
+/** createElm
+ *  由patch函数调用，用于将 虚拟节点递归转换为真实节点
+ * @param {*} VNode
+ * @return {*} 返回真实 dom
+ */
 function createElm(VNode) {
     const { tag, data, children, text } = VNode
     if (typeof tag === 'string') {  //元素标签
@@ -17,6 +22,12 @@ function createElm(VNode) {
     return VNode.el
 }
 
+/** patch函数
+ * 作用：第一次挂载虚拟节点 / 更新并挂载新的虚拟节点
+ *      将虚拟节点（对比）生成真实dom并替换
+ * @param {*} oldVNode 第一次调用时为真实节点，之后为以前生成的虚拟节点
+ * @param {*} VNode 虚拟节点
+ */
 function patch(oldVNode, VNode) {
     // 初渲染时，需要进行判断
     const isRealElement = oldVNode.nodeType // element.nodeType 是原生方法，如果是element的话 会返回1
@@ -26,16 +37,20 @@ function patch(oldVNode, VNode) {
         const elm = oldVNode
         let parentElm = elm.parentNode //真实节点获取他的父节点
         let newelm = createElm(VNode)
-        console.log(newelm)
         parentElm.insertBefore(newelm, elm.nextSibiling)
         parentElm.removeChild(elm)
-
+        return newelm
     } else {
         // 这里是新旧vnode对比替换
     }
+
 }
 
-// 挂载属性
+/** patchProps挂载属性
+ *  在 createElm中用于将虚拟dom的属性挂载到真实dom上
+ * @param {*} el
+ * @param {*} props
+ */
 function patchProps(el, props) {
     for (let key in props) {
         if (key === 'style') {
@@ -48,16 +63,34 @@ function patchProps(el, props) {
     }
 }
 
+
+/** initLifeCycle
+ *  在Vue.prototype 上挂载 _update _render _c _v _s 函数
+ * @export
+ * @param {*} Vue
+ */
 export function initLifeCycle(Vue) {
+
+    /** _update
+     *  在这里调用 patch函数 
+     *  将传过来的 Vnode 和 oldVnode 传入patch中
+     * @export 
+     * @param {*} vnode
+     */
     Vue.prototype._update = function (vnode) {
         console.log('将虚拟dom转换为真实dom')
 
         const vm = this
         const el = vm.$el
         // patch 既有初始化功能，又有更新的功能
-        patch(el, vnode)
+        vm.$el = patch(el, vnode)
     }
 
+    /** _render
+     * 执行由 render函数返回的 with _c _v _s 
+     * @export
+     * @param {*} Vue
+     */
     Vue.prototype._render = function () {
         console.log('生成虚拟dom')
         const vm = this // this 是 vue实例
@@ -85,17 +118,17 @@ export function initLifeCycle(Vue) {
 
 }
 
-
-
+// 
+/** 挂载函数
+ *  调用 render生成虚拟dom ，再调用update 通过patch进行挂载虚拟dom
+ *  （第一次调用时被 $mount 调用）
+ * @export
+ * @param {*} vm vue实例
+ * @param {*} el 第一次调用时为真实dom，之后为 生成的虚拟节点
+ */
 export function mountComponent(vm, el) {
     vm.$el = el
-    // 1.调用render方法 产生虚拟节点 虚拟dom
     vm._update(vm._render())
-
-
-    // 2.根据虚拟dom生成真实dom
-
-    // 3.插入到el元素中
 }
 
 

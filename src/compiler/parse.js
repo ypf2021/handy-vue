@@ -11,6 +11,13 @@ const defaultTagRE = /\{\{((?:.|\r?\n)+?)\}\}/g
 
 // vue3用的不是正则
 
+/** parseHTML
+ *  将html转换为 ast语法树
+ *  
+ * @export
+ * @param {*} html
+ * @return {*} 
+ */
 export function parseHTML(html) {
 
     // 匹配开始标签,并对标签和属性存储

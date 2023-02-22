@@ -79,6 +79,13 @@ function gen(node) {
     }
 }
 
+/** compileToFunction 
+ *  将模板template 转换为 render函数 
+ *  其中将 html 转化为 ast树，又将 ast树转换为由 _v _s 组成的函数字符串，并用 new Function的方式返回 即是render函数
+ * @export
+ * @param {*} template
+ * @return {*} 
+ */
 export function compileToFunction(template) {
     // 1. 就是将template 转换为 ast 语法树
     let ast = parseHTML(template)
