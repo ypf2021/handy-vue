@@ -90,6 +90,7 @@ export function initLifeCycle(Vue) {
      * @param {*} Vue
      */
     Vue.prototype._render = function () {
+        console.log("_render")
         const vm = this // this 是 vue实例
         // 调用render函数时，获取vm中取值，从而将视图和数据绑定在一起
         let vnode = vm.$options.render.call(vm)  //我们自定的with(this){return ${code}}

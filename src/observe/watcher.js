@@ -2,6 +2,7 @@ import Dep from "./dep"
 
 let id = 0
 
+// 每个属性有一个 dep （属性就是被观察者），watcher就是观察者（属性变化了会同通知观察者来更新） ===> 观察者模式
 class Watcher { //不同组件有不同的watcher 目前只有一个渲染根实例
 
     constructor(vm, fn, options) {
@@ -29,9 +30,43 @@ class Watcher { //不同组件有不同的watcher 目前只有一个渲染根实
         }
     }
     update() {
+        // 对更新操作进行异步处理
+        // this.get()
+        queueWatcher(this) //把传入的watcher暂存起来
+    }
+    run() {
         this.get()
     }
 }
+
+
+let queue = []
+let has = {}
+let pending = false //防抖
+
+function flushSchedulerQueue() {
+    let flushQueue = queue.slice(0)
+    flushQueue.forEach(q => q.run())
+    queue = []
+    has = {}
+    pending = false
+}
+
+function queueWatcher(watcher) {
+    const id = watcher.id
+    // 对同一个页面的多次改变去重
+    if (!has[id]) {
+        queue.push(watcher)
+        has[id] = true;
+        // 不管执行多少次数据的变化,但最终只执行一轮刷新操作，放到一起更新
+        if (!pending) {
+            setTimeout(flushSchedulerQueue, 0);
+            pending = true
+        }
+    }
+}
+
+
 
 // 需要给每一个属性增加一个 dep， 目的就是为了收集 Watcher
 // 让属性收集他所依赖的watcher
