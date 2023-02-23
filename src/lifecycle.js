@@ -1,5 +1,5 @@
 import { createTextVNode, createElementVNode } from "./vdom/index"
-
+import Watcher from './observe/watcher'
 /** createElm
  *  由patch函数调用，用于将 虚拟节点递归转换为真实节点
  * @param {*} VNode
@@ -43,7 +43,6 @@ function patch(oldVNode, VNode) {
     } else {
         // 这里是新旧vnode对比替换
     }
-
 }
 
 /** patchProps挂载属性
@@ -78,7 +77,6 @@ export function initLifeCycle(Vue) {
      * @param {*} vnode
      */
     Vue.prototype._update = function (vnode) {
-        console.log('将虚拟dom转换为真实dom')
 
         const vm = this
         const el = vm.$el
@@ -92,7 +90,6 @@ export function initLifeCycle(Vue) {
      * @param {*} Vue
      */
     Vue.prototype._render = function () {
-        console.log('生成虚拟dom')
         const vm = this // this 是 vue实例
         // 调用render函数时，获取vm中取值，从而将视图和数据绑定在一起
         let vnode = vm.$options.render.call(vm)  //我们自定的with(this){return ${code}}
@@ -128,7 +125,12 @@ export function initLifeCycle(Vue) {
  */
 export function mountComponent(vm, el) {
     vm.$el = el
-    vm._update(vm._render())
+
+    const updateComponent = () => {
+        vm._update(vm._render())
+    }
+
+    new Watcher(vm, updateComponent, true) // true用于表示这是一个 渲染watcher
 }
 
 
