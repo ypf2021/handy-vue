@@ -39,11 +39,12 @@ class Watcher { //不同组件有不同的watcher 目前只有一个渲染根实
     }
 }
 
-
+// 异步批处理
 let queue = []
 let has = {}
 let pending = false //防抖
 
+// 对存储的 watcher 进行遍历更新
 function flushSchedulerQueue() {
     let flushQueue = queue.slice(0)
     flushQueue.forEach(q => q.run())
@@ -60,13 +61,62 @@ function queueWatcher(watcher) {
         has[id] = true;
         // 不管执行多少次数据的变化,但最终只执行一轮刷新操作，放到一起更新
         if (!pending) {
-            setTimeout(flushSchedulerQueue, 0);
+            nextTick(flushSchedulerQueue, 0);
             pending = true
         }
     }
 }
 
+// 异步批处理
+let callbacks = []
+let waiting = false;
+function flushCallbacks() {
+    waiting = false
+    let cbs = callbacks.slice(0)
+    cbs.forEach(cb => cb())  // 遍历执行所有的 nextTick回调
+    callbacks = []
+}
 
+// nextTick中没有直接使用哪个 api ，而是采用优雅降级的方法
+// 内部采用的是 promise > MutationObserver(h5的api) > (ie专享的)setImmediate > (宏任务)setTimeout 
+// 如下
+let timmerFunc;
+if (Promise) {
+    timmerFunc = () => {
+        Promise.resolve().then(flushCallbacks)
+    }
+} else if (MutationObserver) {
+    // 通过函数改变 监听元素的值 从而达到触发回调的功能
+    let observer = new MutationObserver(flushCallbacks) //这里传入的回调时异步执行的
+    let textNode = document.createTextNode(1);
+    observer.observe(textNode, {
+        characterData: true
+    })
+    timmerFunc = () => {
+        textNode.textContent = 2
+    }
+} else if (setImmediate) {
+    timmerFunc = () => {
+        setImmediate(flushCallbacks)
+    }
+} else {
+    timmerFunc = () => {
+        setTimeout(flushCallbacks, 0)
+    }
+}
+
+// 用 nextTick将任务存到一个异步队列中
+export function nextTick(cb) {
+    callbacks.push(cb) //维护 nextTick中的 callback数组，最后一起 执行
+    if (!waiting) {
+        // setTimeout(() => {
+        //     flushCallbacks()
+        // }, 0)
+        timmerFunc()
+
+        waiting = true
+    }
+}
 
 // 需要给每一个属性增加一个 dep， 目的就是为了收集 Watcher
 // 让属性收集他所依赖的watcher
