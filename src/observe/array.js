@@ -41,6 +41,8 @@ methods.forEach(method => {
         if (inserted) {
             ob.observeArray(inserted)
         }
+        console.log(ob)
+        ob.dep.notify() //调用了数组方法，通知对应watcher 实现更新操作
 
         return result
     }

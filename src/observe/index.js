@@ -3,8 +3,11 @@ import Dep from './dep'
 
 class Observer {
     constructor(data) {
-        // Object.defineProperty只能劫持已经存在的属性，后增的，或者删除的,不知道
 
+        //给每个对象都增加一个收集功能
+        this.dep = new Dep()
+
+        // Object.defineProperty只能劫持已经存在的属性，后增的，或者删除的,不知道
         // data.__ob__ = this; //自定义对象属性，把当前的构造函数当作属性给了 传过来的对象
         // 但如果赋值定义ob这个对象，就会一直被遍历死循环，可以将它变为不可枚举的
         Object.defineProperty(data, '__ob__', {
@@ -34,16 +37,35 @@ class Observer {
     }
 }
 
+function dependArray(value) {
+    for (let i = 0; i < value.length; i++) {
+        let current = value[i]
+        current.__ob__ && current.__ob__.dep.depend()
+        if (Array.isArray(current)) {
+            dependArray(current)
+        }
+    }
+}
+
+
 export function defineReactive(target, key, value) { //属性劫持
     // 这个环境由于value 构成了一个闭包
 
-    observe(value) //递归的对所有的对象进行劫持
+    let childOb = observe(value) //递归的对所有的对象进行劫持  childOb.dep,用来收集对象本身的依赖
     let dep = new Dep() // 每一个属性都有一个dep 并不会被销毁
     Object.defineProperty(target, key, {
         get() { //取值执行
 
             if (Dep.target) {
                 dep.depend() //让当前的dep实例记住 Dep.target 上的 watcher
+                if (childOb) {
+                    childOb.dep.depend() //让数组和对象本身也具有依赖和 渲染watch, 但这里只是让最外层的调用了depend，内部的还没有
+
+                    // 深层次进行递归 让数组中的数组调用depend
+                    if (Array.isArray(value)) {
+                        dependArray(value)
+                    }
+                }
             }
 
             return value
@@ -58,7 +80,6 @@ export function defineReactive(target, key, value) { //属性劫持
 
 
 export function observe(data) {
-
     // 对数据进行劫持
 
     if (typeof data !== 'object' || data == null) {
