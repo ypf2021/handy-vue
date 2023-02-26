@@ -1,21 +1,38 @@
 import { initState } from './state'
 import { compileToFunction } from './compiler/index'
-import { mountComponent } from './lifecycle'
+import { callHook, mountComponent } from './lifecycle'
+import { mergeOptions } from './utils'
+
 export function initMixin(Vue) {
+
+    /** _init
+     *  调用 initState 和 $mount
+     * @export
+     * @param {*} Vue
+     */
     Vue.prototype._init = function (options) {
 
         const vm = this
 
         // 把options注册到实例上，
-        vm.$options = options
+        vm.$options = mergeOptions(this.constructor.options, options)
+
+        console.log(vm.$options)
+        // 在状态初始化之前调用 beforeCreate
+        callHook(vm, 'beforeCreate')
 
         // 初始化状态
         initState(vm)
 
+        // 在状态初始化后 调用create
+        callHook(vm, 'created')
+
         if (options.el) {
             vm.$mount(options.el)
+            callHook(vm, 'mounted')
         }
     }
+
     Vue.prototype.$mount = function (el) {
         const vm = this
         el = document.querySelector(el) // 对用户写入的 el 进行 querySelector处理

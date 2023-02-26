@@ -77,7 +77,6 @@ export function initLifeCycle(Vue) {
      * @param {*} vnode
      */
     Vue.prototype._update = function (vnode) {
-
         const vm = this
         const el = vm.$el
         // patch 既有初始化功能，又有更新的功能
@@ -86,6 +85,7 @@ export function initLifeCycle(Vue) {
 
     /** _render
      * 执行由 render函数返回的 with _c _v _s 
+     * 生成虚拟节点
      * @export
      * @param {*} Vue
      */
@@ -134,6 +134,18 @@ export function mountComponent(vm, el) {
     new Watcher(vm, updateComponent, true) // true用于表示这是一个 渲染watcher
 }
 
-
-
 // 
+/** callHook 
+ *  注册生命周期的钩子函数,在指定位置调用 callHook(vm,hook) 
+ *  就可以在那个位置依次执行被定义的生命周期函数了
+ * @export
+ * @param {*} vm
+ * @param {*} hook
+ */
+export function callHook(vm, hook) {
+    const handlers = vm.$options[hook]
+    if (handlers) {
+        handlers.forEach(handler => handler.call(vm))
+    }
+
+}
