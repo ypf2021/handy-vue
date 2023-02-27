@@ -17,7 +17,6 @@ export function initMixin(Vue) {
         // 把options注册到实例上，
         vm.$options = mergeOptions(this.constructor.options, options)
 
-        console.log(vm.$options)
         // 在状态初始化之前调用 beforeCreate
         callHook(vm, 'beforeCreate')
 

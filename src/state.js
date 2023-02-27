@@ -10,7 +10,38 @@ export function initState(vm) {
     if (opts.computed) {
         initComputed(vm)
     }
+    if (opts.watch) {
+        initWatch(vm)
+    }
 }
+
+
+function initWatch(vm) {
+    let watch = vm.$options.watch;
+    for (let key in watch) {
+        const handler = watch[key]; //字符串，数组，函数三种
+        if (Array.isArray(handler)) {
+            // 如果是数组的话就遍历展开
+            for (let i = 0; i < handler.length; i++) {
+                createWatcher(vm, key, handler)
+            }
+        } else {
+
+            createWatcher(vm, key, handler)
+        }
+    }
+}
+
+function createWatcher(vm, key, handler) {
+    // 字符串 函数
+    if (typeof handler === 'string') {
+        handler = vm[handler]
+    }
+    return vm.$watch(key, handler)
+}
+
+
+
 
 function proxy(vm, target, key) {
     Object.defineProperty(vm, key, {
@@ -37,6 +68,7 @@ function initData(vm) {
     }
 }
 
+// 注册计算属性
 function initComputed(vm) {
     const computed = vm.$options.computed
     const watcher = vm._computedWatchers = {}   //将计算属性的watcher保存到vm上
@@ -62,6 +94,7 @@ function defineComputed(target, key, userDef) {
     })
 }
 
+// 定义计算属性的get'方法
 function createComputedGetter(key) {
     // 检测是否要执行这个getter
     return function () {

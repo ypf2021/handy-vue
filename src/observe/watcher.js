@@ -5,17 +5,26 @@ let id = 0
 // 每个属性有一个 dep （属性就是被观察者），watcher就是观察者（属性变化了会同通知观察者来更新） ===> 观察者模式
 class Watcher { //不同组件有不同的watcher 目前只有一个渲染根实例
 
-    constructor(vm, fn, options) {
+    constructor(vm, exprOrFn, options, cb) {
         this.id = id++
         this.vm = vm
+        if (typeof exprOrFn === 'string') {
+            this.getter = function () {
+                return vm[exprOrFn] // 这里取值会进行依赖收集
+            }
+        } else {
+            this.getter = exprOrFn //getter意味着 调用这个函数 可以发生取值操作
+        }
+
         this.renderWatcher = options // 是否是一个渲染Watchetr
-        this.getter = fn //getter意味着 调用这个函数 可以发生取值操作
         this.deps = [] //让watcher记住dep，后续实现计算属性，和一些清理工作需要用到
         this.depsId = new Set()
-        this.lazy = options.lazy //控制是否不立即执行get
+        this.lazy = options.lazy //控制是否不立即执行get, 用于computed
         this.dirty = this.lazy  //缓存值
+        this.value = this.lazy ? undefined : this.get()
 
-        this.lazy ? undefined : this.get()
+        this.user = options.user // 用来判断是否是 watch监听属性的 watcher
+        this.cb = cb
 
     }
 
@@ -56,10 +65,15 @@ class Watcher { //不同组件有不同的watcher 目前只有一个渲染根实
             // this.get()
             queueWatcher(this) //把传入的watcher暂存起来
         }
-
     }
+
     run() {
-        this.get()
+        let oldValue = this.value
+        let newValue = this.get()
+        if (this.user) {
+            this.cb.call(this.vm, newValue, oldValue)
+        }
+
     }
 }
 
