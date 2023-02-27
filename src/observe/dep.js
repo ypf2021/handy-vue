@@ -22,7 +22,28 @@ class Dep {
 }
 
 Dep.target = null
+
+let stack = []
+export function pushTarget(target) {
+    Dep.target = target
+    stack.push(target)
+}
+
+export function popTarget() {
+    stack.pop()
+    Dep.target = stack[stack.length - 1]
+}
+
+
+
+
+
+
 export default Dep
+
+
+
+
 
 // 依赖手收集
 // 1. 在进行挂载时，先new 一个Watcher。 并把 Dep.taget 指向自己。 然后去调用 _render _update

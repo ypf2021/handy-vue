@@ -1,4 +1,4 @@
-import Dep from "./dep"
+import Dep, { popTarget, pushTarget } from "./dep"
 
 let id = 0
 
@@ -7,17 +7,28 @@ class Watcher { //不同组件有不同的watcher 目前只有一个渲染根实
 
     constructor(vm, fn, options) {
         this.id = id++
-        this.renderWatcher = options // 是一个渲染Watchetr
+        this.vm = vm
+        this.renderWatcher = options // 是否是一个渲染Watchetr
         this.getter = fn //getter意味着 调用这个函数 可以发生取值操作
         this.deps = [] //让watcher记住dep，后续实现计算属性，和一些清理工作需要用到
         this.depsId = new Set()
-        this.get()
+        this.lazy = options.lazy //控制是否不立即执行get
+        this.dirty = this.lazy  //缓存值
+
+        this.lazy ? undefined : this.get()
+
+    }
+
+    evaluate() {
+        this.value = this.get()
+        this.dirty = false
     }
 
     get() { // 调用get方法就可以渲染视图
-        Dep.target = this   //把当前的 watcher实例，放到 Dep的静态属性上。
-        this.getter() //回去vm上取值
-        Dep.target = null //取值完毕后清空
+        pushTarget(this)   //把当前的 watcher实例，放到 Dep的静态属性上。
+        let value = this.getter.call(this.vm) //回去vm上取值
+        popTarget() //取值完毕后清空
+        return value
     }
 
     addDep(dep) {
@@ -29,10 +40,23 @@ class Watcher { //不同组件有不同的watcher 目前只有一个渲染根实
             dep.addSubs(this) //再调用dep的 addSubs记住watcher
         }
     }
+    depend() {  //在这里取出 deps 遍历去 depend 当前的Dep.target
+        let i = this.deps.length
+        while (i--) {
+            this.deps[i].depend()
+        }
+    }
     update() {
-        // 对更新操作进行异步处理
-        // this.get()
-        queueWatcher(this) //把传入的watcher暂存起来
+        if (this.lazy) {
+            // 如果是计算属性， 依赖变化了触发notice，就把脏值标识为 true 再次求值
+            this.dirty = true
+            debugger
+        } else {
+            // 对更新操作进行异步处理
+            // this.get()
+            queueWatcher(this) //把传入的watcher暂存起来
+        }
+
     }
     run() {
         this.get()
