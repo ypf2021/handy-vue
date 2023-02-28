@@ -1,6 +1,6 @@
 import Dep from "./observe/dep"
 import { observe } from "./observe/index"
-import Watcher from "./observe/watcher"
+import Watcher, { nextTick } from "./observe/watcher"
 
 export function initState(vm) {
     const opts = vm.$options
@@ -14,7 +14,6 @@ export function initState(vm) {
         initWatch(vm)
     }
 }
-
 
 function initWatch(vm) {
     let watch = vm.$options.watch;
@@ -39,9 +38,6 @@ function createWatcher(vm, key, handler) {
     }
     return vm.$watch(key, handler)
 }
-
-
-
 
 function proxy(vm, target, key) {
     Object.defineProperty(vm, key, {
@@ -107,5 +103,14 @@ function createComputedGetter(key) {
             watcher.depend() //让当前 计算属性watcher里面的 dep 也去收集上层的其他渲染watcher
         }
         return watcher.value
+    }
+}
+
+// 创建 $nextTick $watch
+export function initStateMixin(Vue) {
+    Vue.prototype.$nextTick = nextTick
+    Vue.prototype.$watch = function (exprOrFn, cb) {
+        // exprOrFn 的值变化了，就触发对应的回调
+        new Watcher(this, exprOrFn, { user: true }, cb)
     }
 }

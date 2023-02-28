@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- 我们可以给模板属性增加一个收集器 dep -->
+    <!-- 页面渲染的时候，我们将逻辑分装到watcher 中， vm._ update(vm._render()) -->
+    <!-- 让dep记住这个watcher即可，稍后属性变化了可以找到对应的dep中存放的wather进行重新渲染 -->
+
+    <div id="app" style="color:red;">
+        222
+        <div>
+            111111
+            <span style="color: rgb(9, 124, 105);">
+                asdasd {{name}} : {{age}} assdasd
+            </span>
+        </div>
+        hello
+    </div>
+    <script src="./vue.js"></script>
+    <script>
+        let vm = new Vue({
+            data() {
+                return {
+                    name: '111',
+                    age: 20,
+                    hobby: [0, 1, 2, 3, { age: 19 }]
+                }
+            },
+            el: '#app',
+        })
+        console.log(vm)
+
+        vm.name = '闫鹏飞'
+        vm.$nextTick(() => { console.log(document.getElementById('app')) })
+
+
+        // 模板引擎 性能差 需要正常判断， 1.0的时候没有引入虚拟DOM的改变
+        // 采用虚拟DOM，数据变化后比较虚拟DOM的差异，最后更新需要更改的地方
+        // 核心： 将模板转换为js语法， 通过js语法生成虚拟DOM
+
+        // 从一个东西，变为另一个东西 ， 语法之间的转换
+        // 需要先变成语法树，再重新传还组装成新语法 .最终将template转换为 render函数
+    </script>
+</body>
+
+</html>

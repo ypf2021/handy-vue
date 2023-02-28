@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- 我们可以给模板属性增加一个收集器 dep -->
+    <!-- 页面渲染的时候，我们将逻辑分装到watcher 中， vm._ update(vm._render()) -->
+    <!-- 让dep记住这个watcher即可，稍后属性变化了可以找到对应的dep中存放的wather进行重新渲染 -->
+
+    <div id="app" style="color:red;">
+        {{firstName}}
+
+    </div>
+    <script src="./vue.js"></script>
+    <script>
+        let vm = new Vue({
+            data() {
+                return {
+                    name: '111',
+                    age: 20,
+                    xxx: 1,
+                    firstName: "pf"
+                }
+            },
+            watch: {
+                firstName(newValue, oldValue) {
+                    console.log("watch change")
+                    console.log(newValue, oldValue)
+                }
+            },
+
+            el: '#app',
+        })
+
+        console.log(vm)
+
+        setTimeout(() => {
+            vm.firstName = 1
+            // debugger
+        }, 2000)
+    </script>
+</body>
+
+</html>

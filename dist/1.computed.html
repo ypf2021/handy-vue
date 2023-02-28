@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- 我们可以给模板属性增加一个收集器 dep -->
+    <!-- 页面渲染的时候，我们将逻辑分装到watcher 中， vm._ update(vm._render()) -->
+    <!-- 让dep记住这个watcher即可，稍后属性变化了可以找到对应的dep中存放的wather进行重新渲染 -->
+
+    <div id="app" style="color:red;">
+
+        {{fullName}} |
+
+
+    </div>
+    <script src="./vue.js"></script>
+    <script>
+        let vm = new Vue({
+            data() {
+                return {
+                    name: '111',
+                    age: 20,
+                    xxx: 1
+                }
+            },
+            // 计算属性 以来的值发生变化时才会重新执行用户的方法(get) 计算属性中要维护一个dirty来记忆，默认计算属性不会立即执行
+            // 计算属性就是一个 defineProperty
+            // 计算属性也是一个watcher 默认会创建一个渲染watcher 
+            computed: {
+                // fullName() {    //defineProperty中的get方法
+                //     return this.name + this.age
+                // }
+                fullName: {
+                    get() {
+                        console.log('run')
+                        return this.name + this.age
+                    },
+                    set(newVal) {
+                    }
+                }
+            },
+            el: '#app',
+        })
+
+
+        setTimeout(() => {
+            vm.name = 123
+        },  2000);
+
+        // console.log('vm:', vm)
+
+
+
+        // 模板引擎 性能差 需要正常判断， 1.0的时候没有引入虚拟DOM的改变
+        // 采用虚拟DOM，数据变化后比较虚拟DOM的差异，最后更新需要更改的地方
+        // 核心： 将模板转换为js语法， 通过js语法生成虚拟DOM
+
+        // 从一个东西，变为另一个东西 ， 语法之间的转换
+        // 需要先变成语法树，再重新传还组装成新语法 .最终将template转换为 render函数
+    </script>
+</body>
+
+</html>

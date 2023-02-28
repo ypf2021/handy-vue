@@ -1,20 +1,16 @@
 import { initGlobalAPI } from './globalAPI'
 import { initMixin } from './init'
 import { initLifeCycle } from './lifecycle'
-import Watcher, { nextTick } from './observe/watcher'
+import { initStateMixin } from './state'
 
 function Vue(options) {
     this._init(options)
 }
-Vue.prototype.$nextTick = nextTick
-Vue.prototype.$watch = function (exprOrFn, cb) {
-    // exprOrFn 的值变化了，就触发对应的回调
-    new Watcher(this, exprOrFn, { user: true }, cb)
-}
+
 initMixin(Vue)
 initLifeCycle(Vue)
 initGlobalAPI(Vue)
-
+initStateMixin(Vue)
 
 
 export default Vue

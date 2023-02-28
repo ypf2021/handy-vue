@@ -59,7 +59,6 @@ class Watcher { //不同组件有不同的watcher 目前只有一个渲染根实
         if (this.lazy) {
             // 如果是计算属性， 依赖变化了触发notice，就把脏值标识为 true 再次求值
             this.dirty = true
-            debugger
         } else {
             // 对更新操作进行异步处理
             // this.get()
