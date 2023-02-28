@@ -9,44 +9,24 @@
 </head>
 
 <body>
-
-    <div id="app" style="color:red;">
-
-        {{fullName}} |
-
-
+    <div id="app">
+        <span>{{ name }}</span>
     </div>
+
     <script src="./vue.js"></script>
     <script>
-        let vm = new Vue({
+        const vm = new Vue({
             data() {
                 return {
-                    name: '111',
-                    age: 20,
-                    xxx: 1
+                    name: 'ypf'
                 }
             },
-
-            computed: {
-
-                fullName: {
-                    get() {
-                        console.log('run')
-                        return this.name + this.age
-                    },
-                    set(newVal) {
-                    }
-                }
-            },
-            el: '#app',
+            el: '#app'
         })
-
 
         setTimeout(() => {
             vm.name = 123
         }, 2000);
-
-        // console.log('vm:', vm)
 
     </script>
 </body>

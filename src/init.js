@@ -56,9 +56,7 @@ export function initMixin(Vue) {
                 // 把render函数挂载到了 opts上面
                 opts.render = render
             }
-
         }
-
         // 组件的挂载
         mountComponent(vm, el)
     }
