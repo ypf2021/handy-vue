@@ -3,9 +3,6 @@ import { initMixin } from "./init";
 import { initLifeCycle } from "./lifecycle";
 import { initStateMixin } from "./state";
 
-// import { createElm, patch } from "./vdom/patch";
-// import { compileToFunction } from "./compiler/index";
-
 function Vue(options) {
     this._init(options);
 }
@@ -14,38 +11,6 @@ initMixin(Vue);
 initLifeCycle(Vue);
 initGlobalAPI(Vue);
 initStateMixin(Vue);
-
-// // |---------------------- 测试虚拟节点  ------------------------|
-
-// let render1 = compileToFunction(`<ul style="color:#bbbb;">
-// <li key="a">a</li>
-//  <li key="b">b</li>
-//  <li key="c">c</li>
-//  <li key="d">d</li>
-
-// </ul>`);
-// let vm1 = new Vue({ data: { name: "yp" } });
-// let prevVnode = render1.call(vm1);
-
-// let el = createElm(prevVnode);
-// document.body.appendChild(el);
-
-// let render2 = compileToFunction(`<ul style="color: rgba(189, 28, 28, 0.73);">
-
-//     <li key="b">b</li>
-//     <li key="m">m</li>
-//     <li key="a">a</li>
-//     <li key="p">p</li>
-//     <li key="c">c</li>
-//     <li key="q">q</li>
-
-//     </ul>`);
-// let vm2 = new Vue({ data: { name: "lza" } });
-// let nextVnode = render2.call(vm2);
-
-// setTimeout(() => {
-//     patch(prevVnode, nextVnode);
-// }, 1000);
 
 export default Vue;
 

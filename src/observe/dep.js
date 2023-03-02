@@ -1,49 +1,40 @@
-let id = 0
+let id = 0;
 class Dep {
     constructor() {
-        this.id = id++
-        this.subs = []  //这里要存放 属性对应的watcher
-
+        this.id = id++;
+        this.subs = []; //这里要存放 属性对应的watcher
     }
     depend() {
         // 这里我们不希望多次存放同一watcher、
         // this.subs.push(Dep.target)
 
         // 先调用watcher的  addDep , 让watcher记住 dep
-        Dep.target.addDep(this)
+        Dep.target.addDep(this);
         // 然后 watcher 调用dep的addSubs 让dep记住 watcher
     }
     addSubs(watcher) {
-        this.subs.push(watcher)
+        this.subs.push(watcher);
     }
     notify() {
-        this.subs.forEach(watcher => watcher.update())
+        this.subs.forEach((watcher) => watcher.update());
     }
 }
 
-Dep.target = null
+Dep.target = null;
 
-let stack = []
+// 维护一个用来存放 Dep.target 的 栈结构
+let stack = [];
 export function pushTarget(target) {
-    Dep.target = target
-    stack.push(target)
+    Dep.target = target;
+    stack.push(target);
 }
 
 export function popTarget() {
-    stack.pop()
-    Dep.target = stack[stack.length - 1]
+    stack.pop();
+    Dep.target = stack[stack.length - 1];
 }
 
-
-
-
-
-
-export default Dep
-
-
-
-
+export default Dep;
 
 // 依赖手收集
 // 1. 在进行挂载时，先new 一个Watcher。 并把 Dep.taget 指向自己。 然后去调用 _render _update
