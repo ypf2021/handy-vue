@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app">
+    </div>
+
+    <script src="./vue.js"></script>
+    <script>
+        Vue.component('my-button', {
+            template: '<button>全局</button>'
+        })
+
+        let Sub = Vue.extend({
+            template: '<div>子组件 <my-button></my-button></div>',
+            components: {
+                'my-button': {
+                    template: '<button>子组件自己的button</button>'
+                }
+            }
+        })
+
+        new Sub().$mount('#app')
+        // let vm = new Vue({
+        //     data() {
+        //         return {
+        //             name: '111',
+        //             hobby: [0, 1, 2, 3, { age: 19 }]
+        //         }
+        //     },
+        //     el: '#app'
+        // })
+
+    </script>
+</body>
+
+</html>

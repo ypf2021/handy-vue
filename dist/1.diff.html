@@ -18,7 +18,12 @@
         const vm = new Vue({
             data() {
                 return {
-                    name: 'ypf'
+                    name: 'ypf',
+                }
+            },
+            watch: {
+                name() {
+                    console.log('name变了')
                 }
             },
             el: '#app'

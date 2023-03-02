@@ -1,5 +1,16 @@
 import { isSameVnode } from "./index";
 
+// 去调用虚拟节点上的 init 来创建dom
+function createComponent(Vnode) {
+    let i = Vnode.data;
+    if ((i = i.hook) && (i = i.init)) {
+        i(Vnode);
+    }
+    if (Vnode.componentInstance) {
+        return true;
+    }
+}
+
 /** createElm
  *  由patch函数调用，用于将 虚拟节点递归转换为真实节点
  * @param {*} VNode
@@ -8,6 +19,11 @@ import { isSameVnode } from "./index";
 export function createElm(VNode) {
     const { tag, data, children, text } = VNode;
     if (typeof tag === "string") {
+        // 创建真实元素，也要区分是组件还是元素
+        if (createComponent(VNode)) {
+            //是组件 同时也存在 vnode.componentInstance.$el
+            return VNode.componentInstance.$el;
+        }
         //元素标签
         VNode.el = document.createElement(tag); //方便日后进行diff比较，把真实dom和虚拟dom进行挂载
 
@@ -68,6 +84,11 @@ export function patchProps(el, oldProps = {}, props = {}) {
  * @param {*} VNode 虚拟节点
  */
 export function patch(oldVNode, VNode) {
+    if (!oldVNode) {
+        // 当 oldVnode不存在时 就是 el 不存在，该过程是对组件的挂载
+        return createElm(VNode); // vm.$el 对应的就是组件渲染的结果了
+    }
+
     // 初渲染时，需要进行判断
     const isRealElement = oldVNode.nodeType; // element.nodeType 是原生方法，如果是element的话 会返回1
     if (isRealElement) {
