@@ -52,6 +52,26 @@ vue2中检测数组的方法并没有采用defineProperty ，而是采用的重�
 
 主要应用场景就是异步更新 （默认调度的时候 就会添加一个 nextTick 任务）用户为了渲染到最终的渲染结果需要在内部任务执行之后调用nextTick(callback)。
 
+```js
+    let callbacks = []
+    let wait = false;
+    let flushCallbacks = function(){
+        let cbs = callback.slice(0);
+        cbs.forEach((cb) => cb())
+        wait = false
+    }
+
+    let nextTick = function(cb){
+        callbacks.push(cb)
+        if(!wait){
+            wait = false
+            Promise.resolve().then(flushCallbacks())
+        }
+    }
+
+
+```
+
 ### 响应式原理
 
 1. 在vue实例化时会将实例中传入的 `options` 中的 `data` 进行 `defindeProperty` 的操作，为属性添加 `get` 和 `set` 方法
@@ -66,11 +86,102 @@ vue2中检测数组的方法并没有采用defineProperty ，而是采用的重�
 10. 依赖收集 ： 首先判断成功有 Dep.targe 后，会让**这个属性的 Dep实例**  调用`depend()`方法,这个方法又会执行 `Dep.target.addDep(this)` 先让 watcher实例添加这个 Dep 实例，这里会进行一个去重操作，再返回给dep实例添加Watcher。
 11. watcher 和 dep 绑定完成后。 如果数据发生变化就会调用 set中的 `dep.notify()` 让用到这个属性的所有 watcher 重新进行 虚拟节点更新挂载
 
+### 9.Vue组件间传值的方式及区别
+
+- props 父传递数据给儿子 属性的原理就是把解析后的 props 验证后就会将属性定义在当前的实例上 vm._props(这个对象上的属性都是通过 defineReactive 来定义的 （都是响应式的）组件在渲染过程中回去 vm 上取值 _props 属性会被代理到 vm 上)
+- emit 儿子触发组件更新，在创建虚拟节点的时候九江所有事件绑定到了 listeners， 通过 $on 方法绑定事件 通过 $emit方法来触发事件(发布订阅模式)
+- eventBus 原理就是 发布订阅模式 $bus = new Vue() 简单的通信可以采用这种简单的方式。
+- ref 可以获取dom元素和组件实例 （虚拟dom没有处理 ref，这里无法拿到实例，也无法获取组件）。创建dom时如何处理ref的？会将用户所有的dom操作及属性，都会互道一个cbs属性中  依次调用 cbs 中的create方法，这里就包含了ref相关的操作，会操作 ref 并且赋值
+- provide （再负组件中将属性暴露出来） inject 后代组件中通过 inject 注入属性， 在负组件中提供数据，再子组件中递归向上查找
+- $attrs （所有组件上的属性，不包括 props） $listeners（组件上所有的事件）
+
+### 10. v-if, v-show, v-model, v-for实现原理
+
+- v-if 会被编译为三元表达式，为false时就不会创建
+- v-show 会编译为指令，并存储原来的 display属性，再none和原来的进行切换
+- v-for 会编译为 _l( )  , for循环遍历
+- v-model 是 v-on和v-bind的语法糖，同时还加了个中文输入的判定
+
+### 11. 插槽的实现原理
+
+```js
+普通插槽和具名插槽
+//父组件
+`<my><div>{{msg}}</div></my>`
+3.//子组件 渲染并查找映射关系
+let result = templateCompiler.compile(`<div class="my"><slot></slot></div>`)
+// _c('div',{staticClass:"my"},[_t("Default")])  用_t()来构造插槽
 
 
+// 组件的孩子叫插槽，元素的孩子就是孩子
+1.// 父组件的Vnode
+new Vnode = {"tag":"my",componentOptions:{children:{tag:'div','hello'}}}
 
+2.// 挂载映射关系
+this.$slots = {default: [儿子虚拟节点]}
+//并将结果放到 vm.$scopeSlots上  vm.$scopeSlots = {a:fn,b:fn,default:fn}
 
+// 组件渲染真实节点时候，会将 <slot></slot>渲染为 _t('default') 再子组件render的时候 会通过 _t 找到 $scopeSlot 上对应的函数（这里是已经完成的虚拟节点）来进行替换渲染内容   ---- 直接渲染完替换
 
+作用域插槽
+//我们渲染插槽选择的作用域是子组件中的  作用域插槽渲染的时候，，将作用域插槽做成了属性 scopedSlots
+// 再制作一个映射关系 $scopedSlots = {defaullt:fn:function({msg}){return _c('div',{},[_v(_s(msg))])}}, 里面的函数并没有执行，
+// 稍后渲染组件的模板的时候，会通过name找到对应的函数 将数据传到函数中 这是才会渲染虚拟节点，用虚拟节点替换 _t('default') ----- 子组件用的时候再渲染
+```
+
+### 12.keep-alive使用，原理
+
+1.常在路由组件中使用 
+
+2.再component :is中使用 
+
+- keeop-alive组建的原理的是默认缓存加载过的组件对应的实例， 内部采用了 LRU 算法
+- 下次切换组件加载的时候， 会找到对应缓存的节点来进行初始化。用上次缓存的$el来触发替换
+- 更新和销毁时会触发 activited 和 deactivited
+
+### 13如何理解自定义指令
+
+自定义指令就是用户定义好对应的钩子，当元素再不同状态时会调用相应的  钩子（所有钩子会被合并到元素对应的cbs上面，到时候依次调用）
+
+### 14. Vue时间修饰符原理是什么
+
+![image-20230307134528346](https://gitee.com/yan-running-potato/typora-diagram/raw/master/image-20230307134528346.png)
+
+原理：都是通过模板编译实现的，
+
+### 15. 组件data必须是函数
+
+原因就在于针对跟实例而言，new Vue 组件是通过同一个构造函数多次创建实例
+
+，如果是同一个对象的话那么数据会被相互影响。每个组建的数据源都是独立的，那就每次调用data返回一个新的对象
+
+```js
+Vue.extends = function (options){
+    function Sub(){
+        this.data = this.constructor.options.data()
+    }
+    Sub.options = options;
+    return Sub
+}
+创建相同子组件实际是 new 同一个 Sub，如果是对象的话，就会相互影响到
+```
+
+### 16. computed 和 watch
+
+computed和watch相同点： computed 和 watch底层都会创建一个watcher （用法区别 computed 定义的属性可以在模板中使用，但watch是监听值后的动作）
+
+- computed 默认不会立即执行，只有取值的时候才会执行， 内部会维护一个 dirty 属性，用来判断依赖的值是否变化，如果变化了才能重新计算这个结果。
+- watch 默认用户回提供一个回调函数，数据变化了就调用这个回调。我们可以监控某个数据的变化，数据变化了执行某些操作
+
+### 17. $set 
+
+Vue.$set 方法是 vue中的一个补丁方法 （正常我们添加属性是不会触发视图的更新的，我们无法见空数组的长度和索引）
+
+如果设置的值为数组，给数组的某一项改变值，就通过 调用 slice 方法进行更改，触发重写的数组方法。
+
+如果给对象添加属性，就对这个属性进行 defineReactive，之后再调用 ob.dep.notify() ，达到响应式的监听和更改视图。
+
+而且不能对 整个 根实例 添加属性，不能直接重写 data或新增 data.xx。
 
 
 

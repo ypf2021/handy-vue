@@ -25,6 +25,7 @@ Dep.target = null;
 // 维护一个用来存放 Dep.target 的 栈结构
 let stack = [];
 export function pushTarget(target) {
+    // 把watcher传过来
     Dep.target = target;
     stack.push(target);
 }

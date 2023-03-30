@@ -37,10 +37,12 @@ export function initGlobalAPI(Vue) {
     Vue.component = function (id, definition) {
         // 如果definition已经是一个函数了，说明用户自己调用了 Vue.extend
 
+        // 得到进过 Vue.extend 之后生成的子类
         definition =
             typeof definition === "function"
                 ? definition
                 : Vue.extend(definition);
+        // 把子类放到 Vue.options.components[id] 上 形成映射关系。 之后再模板编译生成字符串时用到
         Vue.options.components[id] = definition;
         console.log(Vue.options);
     };

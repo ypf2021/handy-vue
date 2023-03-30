@@ -54,7 +54,9 @@ function proxy(vm, target, key) {
 function initData(vm) {
     let data = vm.$options.data; //data可能是函数或者对象
 
+    // 如果是函数的话，改变this指向，对象的话原样返回
     data = typeof data === "function" ? data.call(vm) : data;
+    // 把data挂载到vm上 _data
     vm._data = data;
 
     // 把自定义的data 进行劫持，并覆给 vm上的 _data，并进行 dep收集

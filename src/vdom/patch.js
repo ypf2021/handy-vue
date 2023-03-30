@@ -82,6 +82,8 @@ export function patchProps(el, oldProps = {}, props = {}) {
  *      将虚拟节点（对比）生成真实dom并替换
  * @param {*} oldVNode 第一次调用时为真实节点，之后为以前生成的虚拟节点
  * @param {*} VNode 虚拟节点
+ *
+ * @return {*} Node 真实节点
  */
 export function patch(oldVNode, VNode) {
     if (!oldVNode) {
@@ -113,7 +115,7 @@ function patchVnode(oldVNode, VNode) {
     // 3. 比较完毕后就需要比较两人的儿子
 
     if (!isSameVnode(oldVNode, VNode)) {
-        //连个节点不是相同节点时，
+        // 连个节点不是相同节点时，
         // 进行节点的替换
         let el = createElm(VNode);
         oldVNode.el.parentNode.replaceChild(el, oldVNode.el);
@@ -129,9 +131,10 @@ function patchVnode(oldVNode, VNode) {
             el.textContent = VNode.text; //用新的文本把旧文本覆盖
         }
     }
-    // 是相同标签， 再比较标签的属性,
+    // 是相同标签和相同id， 再比较标签的属性,
     patchProps(el, oldVNode.data, VNode.data);
 
+    // 下一层
     // 比较儿子 比较的时候： 一方有，一方无；
     //                      两边都有
     let oldChildren = oldVNode.children || [];

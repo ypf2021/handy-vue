@@ -56,8 +56,8 @@ export function defineReactive(target, key, value) {
     //属性劫持
     // 这个环境由于value 构成了一个闭包
 
-    let childOb = observe(value); //递归的对所有的对象进行劫持  childOb.dep,用来收集对象本身的依赖
-    let dep = new Dep(); // 每一个属性都有一个dep 并不会被销毁
+    let childOb = observe(value); //  递归的对所有的对象进行劫持 childOb.dep,用来收集对象（value）本身的依赖
+    let dep = new Dep(); // 对属性添加dep 每一个属性都有一个dep 并不会被销毁
     Object.defineProperty(target, key, {
         get() {
             //取值执行

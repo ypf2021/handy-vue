@@ -69,7 +69,7 @@ export function initLifeCycle(Vue) {
 export function mountComponent(vm, el) {
     vm.$el = el;
 
-    // 组合起来，一起放到 watch 的执行函数中。在下面注册完watcher后就会调用 这个函数
+    // 组合起来，一起放到 watcher 的执行函数中。在下面注册完watcher后就会调用 这个函数
     const updateComponent = () => {
         vm._update(vm._render());
     };
