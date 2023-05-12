@@ -3,7 +3,7 @@ export function initGlobalAPI(Vue) {
     // mixin 和 options 是静态方法
 
     Vue.options = {
-        _base: Vue,
+        _base: Vue
     };
 
     // 订阅模式
@@ -21,6 +21,7 @@ export function initGlobalAPI(Vue) {
 
     // 用来创建组建的构造函数，new之后可以挂载
     Vue.extend = function (options) {
+        // 通过类的继承
         function Sub() {
             this._init((options = {}));
         }
@@ -36,6 +37,8 @@ export function initGlobalAPI(Vue) {
     Vue.options.components = {};
     Vue.component = function (id, definition) {
         // 如果definition已经是一个函数了，说明用户自己调用了 Vue.extend
+        // Vue.component('my-component', Vue.extend({ /* ... */ }))
+        // Vue.component('my-component', { /* ... */ })
 
         // 得到进过 Vue.extend 之后生成的子类
         definition =

@@ -32,7 +32,7 @@ starts.components = function (parentVal, childVal) {
 export function mergeOptions(parent, child) {
     const options = {};
 
-    // 对传进来的连个进行遍历，传入mergeField
+    // 对传进来的两个进行遍历，传入mergeField
     for (let key in parent) {
         mergeField(key);
     }

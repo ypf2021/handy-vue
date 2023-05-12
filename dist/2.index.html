@@ -39,7 +39,7 @@
 
         vm.name = '闫鹏飞'
         vm.$nextTick(() => { console.log(document.getElementById('app')) })
-
+        console.log(vm)
 
         // 模板引擎 性能差 需要正常判断， 1.0的时候没有引入虚拟DOM的改变
         // 采用虚拟DOM，数据变化后比较虚拟DOM的差异，最后更新需要更改的地方

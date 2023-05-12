@@ -3,16 +3,16 @@ import Dep from "./dep";
 
 class Observer {
     constructor(data) {
-        //给每个对象都增加一个收集功能
+        //给每个对象都增加一个dep
         this.dep = new Dep();
 
         // Object.defineProperty只能劫持已经存在的属性，后增的，或者删除的,不知道
 
-        // data.__ob__ = this; //自定义对象属性，把当前的构造函数当作属性给了 传过来的对象
-        // 但如果赋值定义ob这个对象，就会一直被遍历死循环，可以将它变为不可枚举的
+        // data.__ob__ = this; //自定义对象属性，把当前的构造函数当作属性给了 传过来的对象data
+        // 但如果赋值定义ob这个对象，就会一直被遍历死循环，所以将ob变为不可枚举的
         Object.defineProperty(data, "__ob__", {
             value: this, //__ob__的值就是 Observe实例
-            enumerable: false, //将 __ob__ 变成不可枚举
+            enumerable: false //将 __ob__ 变成不可枚举
         });
 
         if (Array.isArray(data)) {
@@ -29,6 +29,7 @@ class Observer {
         //循环对象，对属性依次劫持
         // 重新定义属性
         Object.keys(data).forEach((key) =>
+            // 传进去的是 ，对象，key，value
             defineReactive(data, key, data[key])
         );
     }
@@ -60,7 +61,7 @@ export function defineReactive(target, key, value) {
     let dep = new Dep(); // 对属性添加dep 每一个属性都有一个dep 并不会被销毁
     Object.defineProperty(target, key, {
         get() {
-            //取值执行
+            // 取值执行
             // get值添加依赖，没有get的就不会被添加。set值触发notify
             if (Dep.target) {
                 dep.depend(); //让当前的dep实例记住 Dep.target 上的 watcher，
@@ -83,11 +84,11 @@ export function defineReactive(target, key, value) {
             if (newValue === value) return;
             value = newValue;
             dep.notify(); //设置值时通知更新视图
-        },
+        }
     });
 }
 
-// 初始化响应式数据时先进过这里
+// 初始化响应式数据时先经过这里
 export function observe(data) {
     // 对数据进行劫持
 

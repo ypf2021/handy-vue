@@ -8,13 +8,13 @@ class Watcher {
 
     constructor(vm, exprOrFn, options, cb) {
         // option 有三种  直接为true：标识这是渲染watcher
-        //               {lazy: true} 标识是一个计算属性watcher。exprOrFn 是得到值的函数
+        //               {lazy: true} 标识是一个计算属性watcher。exprOrFn 是得到值的函数 是计算属性的get函数
         //               {user: true} 标识这是一个 监听属性的watcher，他会有第四个参数 cb，属性变化时的回调
         this.id = id++;
         this.vm = vm;
 
         if (typeof exprOrFn === "string") {
-            //使用watch监听属性时这里可能是字符串
+            //使用watch监听属性时这里会是字符串
             this.getter = function () {
                 return vm[exprOrFn]; // 这里取值会进行依赖收集
             };
@@ -140,7 +140,7 @@ if (Promise) {
     let observer = new MutationObserver(flushCallbacks); //这里传入的回调时异步执行的
     let textNode = document.createTextNode(1);
     observer.observe(textNode, {
-        characterData: true,
+        characterData: true
     });
     timmerFunc = () => {
         textNode.textContent = 2;
@@ -163,7 +163,6 @@ export function nextTick(cb) {
         //     flushCallbacks()
         // }, 0)
         timmerFunc();
-
         waiting = true;
     }
 }

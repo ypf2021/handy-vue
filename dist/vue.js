@@ -96,7 +96,9 @@
       Vue.component = function (id, definition) {
         // 如果definition已经是一个函数了，说明用户自己调用了 Vue.extend
 
+        // 得到进过 Vue.extend 之后生成的子类
         definition = typeof definition === "function" ? definition : Vue.extend(definition);
+        // 把子类放到 Vue.options.components[id] 上 形成映射关系。 之后再模板编译生成字符串时用到
         Vue.options.components[id] = definition;
         console.log(Vue.options);
       };
@@ -234,6 +236,7 @@
     // 维护一个用来存放 Dep.target 的 栈结构
     var stack = [];
     function pushTarget(target) {
+      // 把watcher传过来
       Dep.target = target;
       stack.push(target);
     }
@@ -349,8 +352,8 @@
       //属性劫持
       // 这个环境由于value 构成了一个闭包
 
-      var childOb = observe(value); //递归的对所有的对象进行劫持  childOb.dep,用来收集对象本身的依赖
-      var dep = new Dep(); // 每一个属性都有一个dep 并不会被销毁
+      var childOb = observe(value); //  递归的对所有的对象进行劫持 childOb.dep,用来收集对象（value）本身的依赖
+      var dep = new Dep(); // 对属性添加dep 每一个属性都有一个dep 并不会被销毁
       Object.defineProperty(target, key, {
         get: function get() {
           //取值执行
@@ -624,7 +627,9 @@
     function initData(vm) {
       var data = vm.$options.data; //data可能是函数或者对象
 
+      // 如果是函数的话，改变this指向，对象的话原样返回
       data = typeof data === "function" ? data.call(vm) : data;
+      // 把data挂载到vm上 _data
       vm._data = data;
 
       // 把自定义的data 进行劫持，并覆给 vm上的 _data，并进行 dep收集
@@ -965,7 +970,7 @@
       } else {
         // 拿到组件的 构造函数(全局调用时) / 组件的options选项(组件内使用时)
         var Ctor = vm.$options.components[tag];
-        console.log('vm.$options', vm.$options, tag);
+        console.log("vm.$options", vm.$options, tag);
 
         // Ctor就是组件的定义 可能是一个 Sub 类，也有可能是组件的obj选项
         // 创造一个组件的虚拟节点 (包含组件的构造函数)
@@ -973,17 +978,17 @@
       }
     }
     function createComponentVnode(vm, tag, key, data, children, Ctor) {
-      // 把没有包装的对象包装一下，都成了一个构造函数
+      // 如果时一个对象的话 就通过 extend ，形成子类
       if (_typeof(Ctor) === "object") {
         Ctor = vm.$options._base.extend(Ctor);
       }
-      console.log('Ctor', Ctor);
+      console.log("Ctor", Ctor);
       data.hook = {
-        // 定义一个init方法，再创建真实节点时候吗，如果是组件则调用此方法
+        // 定义一个init方法，再创建真实节点时候，如果是组件则调用此方法
         init: function init(vnode) {
           // 保存组件的实例到虚拟节点上
           console.log(vnode);
-          vnode.componentInstance = new vnode.componentOptions.Ctor();
+          vnode.componentInstance = new vnode.componentOptions.Ctor(); //new Sub 形成一个 组件，并进行挂载
           var instance = vnode.componentInstance;
           instance.$mount(); //走完这个 instance.$el 上就会有对应的真实dom
         }
@@ -1020,7 +1025,7 @@
 
     // 判断是否为原始元素
     var isReservedTag = function isReservedTag(tag) {
-      return ["a", "li", "span", "p", "button", "ul", 'div'].includes(tag);
+      return ["a", "li", "span", "p", "button", "ul", "div"].includes(tag);
     };
 
     // 去调用虚拟节点上的 init 来创建dom
@@ -1109,6 +1114,8 @@
      *      将虚拟节点（对比）生成真实dom并替换
      * @param {*} oldVNode 第一次调用时为真实节点，之后为以前生成的虚拟节点
      * @param {*} VNode 虚拟节点
+     *
+     * @return {*} Node 真实节点
      */
     function patch(oldVNode, VNode) {
       if (!oldVNode) {
@@ -1140,7 +1147,7 @@
       // 3. 比较完毕后就需要比较两人的儿子
 
       if (!isSameVnode(oldVNode, VNode)) {
-        //连个节点不是相同节点时，
+        // 连个节点不是相同节点时，
         // 进行节点的替换
         var _el = createElm(VNode);
         oldVNode.el.parentNode.replaceChild(_el, oldVNode.el);
@@ -1155,9 +1162,10 @@
           el.textContent = VNode.text; //用新的文本把旧文本覆盖
         }
       }
-      // 是相同标签， 再比较标签的属性,
+      // 是相同标签和相同id， 再比较标签的属性,
       patchProps(el, oldVNode.data, VNode.data);
 
+      // 下一层
       // 比较儿子 比较的时候： 一方有，一方无；
       //                      两边都有
       var oldChildren = oldVNode.children || [];
@@ -1342,7 +1350,7 @@
     function mountComponent(vm, el) {
       vm.$el = el;
 
-      // 组合起来，一起放到 watch 的执行函数中。在下面注册完watcher后就会调用 这个函数
+      // 组合起来，一起放到 watcher 的执行函数中。在下面注册完watcher后就会调用 这个函数
       var updateComponent = function updateComponent() {
         vm._update(vm._render());
       };
@@ -1432,7 +1440,7 @@
     initStateMixin(Vue);
 
     // vue核心流程
-    // 1）创造了响应式数据， 2）模板转换为ast语法树  3）将ast语法树转换为render函数
+    // 1）创造了响应式数据，2）模板转换为ast语法树，3）将ast语法树转换为render函数
     // 4）运行render函数生成 虚拟dom（之后每次数据更新就执行render函数）
 
     return Vue;

@@ -19,7 +19,7 @@ export function initState(vm) {
 function initWatch(vm) {
     let watch = vm.$options.watch;
     for (let key in watch) {
-        const handler = watch[key]; //字符串，数组，函数三种
+        const handler = watch[key]; //字符串（调用对应的method），数组（多个处理函数），函数三种
         if (Array.isArray(handler)) {
             // 如果是数组的话就遍历展开
             for (let i = 0; i < handler.length; i++) {
@@ -34,8 +34,11 @@ function initWatch(vm) {
 function createWatcher(vm, key, handler) {
     // 字符串 函数
     if (typeof handler === "string") {
+        // 拿到对应的method
         handler = vm[handler];
     }
+
+    // watch调用的始终是 vm.$watch
     return vm.$watch(key, handler);
 }
 
@@ -46,7 +49,7 @@ function proxy(vm, target, key) {
         },
         set(newValue) {
             vm[target][key] = newValue;
-        },
+        }
     });
 }
 
@@ -59,7 +62,7 @@ function initData(vm) {
     // 把data挂载到vm上 _data
     vm._data = data;
 
-    // 把自定义的data 进行劫持，并覆给 vm上的 _data，并进行 dep收集
+    // 把 data 进行劫持，并覆给 vm上的 _data，并进行 dep收集
     observe(data);
 
     // 将vm的_data用 vm 代理
@@ -73,7 +76,7 @@ function initData(vm) {
 function initComputed(vm) {
     const computed = vm.$options.computed;
     const watcher = (vm._computedWatchers = {}); //将计算属性的watcher保存到vm上
-    // computed可能有两种形式， 对象和函数，需要分开处理
+    // computed可能有两种形式， 对象和函数，需要分开处理  { [key: string]: Function | { get: Function, set: Function } }
     for (let key in computed) {
         let userDef = computed[key];
 
@@ -82,6 +85,7 @@ function initComputed(vm) {
         // 用lazy标注是一个计算属性watcher，并把这个watcher存起来
         watcher[key] = new Watcher(vm, fn, { lazy: true });
 
+        // 参数为 vm ，计算属性名字，get函数
         defineComputed(vm, key, userDef);
     }
 }
@@ -89,13 +93,15 @@ function initComputed(vm) {
 // 对这个 监听属性 进行定义get'set
 function defineComputed(target, key, userDef) {
     // let getter = typeof userDef === 'function' ? userDef : userDef.get;
+    // 如果有set就拿到set，没有就是空的函数
     let setter = userDef.set || (() => {});
 
     // 定义完之后，可以在实例上拿到对应的属性
+    // 随后在 vm上定义这个计算属性，定义他的getset方法
     Object.defineProperty(target, key, {
         // 取值调用的是createComputedGetter
         get: createComputedGetter(key),
-        set: setter,
+        set: setter
     });
 }
 
@@ -107,11 +113,14 @@ function createComputedGetter(key) {
         if (watcher.dirty) {
             // dirty初始值为 true，求值之后变为false。之后触发 依赖属性的 notify时再变为true
             //利用watch中的 dirty 设置缓存功能
+
+            // 在 evaluate 的时候，计算属性watcher会处于栈顶位置，所以依赖到的数据也会将这个watcher添加进去
             watcher.evaluate(); //求值后 dirty 变味了 false，下次就不求值了
         }
         // 如果watcher栈还有内容的话
         if (Dep.target) {
-            watcher.depend(); //让当前 计算属性watcher里面的 dep 也去收集上层的其他渲染watcher
+            //
+            watcher.depend(); //让当前 计算属性watcher里面的 dep 也去收集上层的其他渲染watcher，进行update更新（计算属性watcher的update只会改变dirty，需要让渲染wather更新页面）
         }
         return watcher.value;
     };
